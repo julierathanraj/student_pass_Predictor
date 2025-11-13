@@ -1,73 +1,93 @@
-Student Pass/Fail Predictor (single-file web app)
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Student Pass/Fail Predictor</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    body{display:flex;min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(135deg,#f8fafc,#eef2ff);margin:0}
+    .card{width:420px;background:white;border-radius:12px;box-shadow:0 8px 30px rgba(20,20,50,0.08);padding:26px}
+    h1{font-size:20px;margin:0 0 8px}
+    p.lead{margin:0 0 18px;color:#374151}
+    label{display:block;margin-top:12px;font-weight:600}
+    input[type=number]{width:100%;padding:10px;border-radius:8px;border:1px solid #e5e7eb;margin-top:6px;font-size:16px}
+    button{margin-top:12px;width:100%;padding:10px;border-radius:8px;border:0;background:#4f46e5;color:white;font-weight:700;cursor:pointer}
+    .result{margin-top:14px;padding:12px;border-radius:8px;background:#f8fafc;border:1px solid #eef2ff}
+    .prob{font-size:18px;font-weight:700}
+    .pass{color: #0f766e}
+    .fail{color: #b91c1c}
+    footer{font-size:12px;color:#6b7280;margin-top:14px;text-align:center}
+    small.note{display:block;margin-top:8px;color:#6b7280}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Student Pass/Fail Predictor</h1>
+    <p class="lead">Enter the number of hours studied and the model will predict the probability of passing.</p>
 
+    <label for="hours">Hours studied (0 - 24)</label>
+    <input id="hours" type="number" min="0" max="24" step="0.1" value="4.5">
 
-<div id="output" class="result" aria-live="polite" hidden>
-<div>Probability of passing: <span id="prob" class="prob">0%</span></div>
-<div id="verdict" style="margin-top:8px;font-weight:700"></div>
-<small class="note">This prediction uses a simple logistic model trained on a small demo dataset. Use for demo/learning only.</small>
-</div>
+    <button id="predictBtn">Predict</button>
 
+    <div id="output" class="result" aria-live="polite" hidden>
+      <div>Probability of passing: <span id="prob" class="prob">0%</span></div>
+      <div id="verdict" style="margin-top:8px;font-weight:700"></div>
+      <small class="note">This prediction uses a simple logistic model trained on a small demo dataset. Use for demo/learning only.</small>
+    </div>
 
-<footer>
-<div>Pre-trained logistic regression model used (w = 0.39989911153643404, b = -1.0659625804009358)</div>
-</footer>
-</div>
+    <footer>
+      <div>Pre-trained logistic regression model used (w = 0.3999, b = -1.0659)</div>
+    </footer>
+  </div>
 
+  <script>
+    // Model coefficients (from logistic regression trained offline)
+    const w = 0.39989911153643404;
+    const b = -1.0659625804009358;
 
-<script>
-// Model coefficients (from logistic regression trained offline)
-const w = 0.39989911153643404;
-const b = -1.0659625804009358;
+    function sigmoid(z){
+      return 1 / (1 + Math.exp(-z));
+    }
 
+    function predictProbability(hours){
+      const z = w * hours + b;
+      return sigmoid(z);
+    }
 
-function sigmoid(z){
-return 1 / (1 + Math.exp(-z));
-}
+    const hoursInput = document.getElementById('hours');
+    const btn = document.getElementById('predictBtn');
+    const output = document.getElementById('output');
+    const probEl = document.getElementById('prob');
+    const verdictEl = document.getElementById('verdict');
 
+    btn.addEventListener('click', () => {
+      const hours = parseFloat(hoursInput.value);
+      if (Number.isNaN(hours) || hours < 0) {
+        alert('Please enter a valid non-negative number of hours.');
+        return;
+      }
 
-function predictProbability(hours){
-const z = w * hours + b;
-return sigmoid(z);
-}
+      const p = predictProbability(hours);
+      const percent = (p * 100).toFixed(2) + '%';
+      probEl.textContent = percent;
 
+      if (p >= 0.5) {
+        verdictEl.textContent = 'PREDICTION: PASS';
+        verdictEl.className = 'pass';
+      } else {
+        verdictEl.textContent = 'PREDICTION: FAIL';
+        verdictEl.className = 'fail';
+      }
 
-const hoursInput = document.getElementById('hours');
-const btn = document.getElementById('predictBtn');
-const output = document.getElementById('output');
-const probEl = document.getElementById('prob');
-const verdictEl = document.getElementById('verdict');
+      output.hidden = false;
+    });
 
-
-btn.addEventListener('click', () => {
-const hours = parseFloat(hoursInput.value);
-if (Number.isNaN(hours) || hours < 0) {
-alert('Please enter a valid non-negative number of hours.');
-return;
-}
-
-
-const p = predictProbability(hours);
-const percent = (p * 100).toFixed(2) + '%';
-probEl.textContent = percent;
-
-
-if (p >= 0.5) {
-verdictEl.textContent = 'PREDICTION: PASS';
-verdictEl.className = 'pass';
-} else {
-verdictEl.textContent = 'PREDICTION: FAIL';
-verdictEl.className = 'fail';
-}
-
-
-output.hidden = false;
-});
-
-
-// Allow Enter key to submit
-hoursInput.addEventListener('keydown', (e) => {
-if (e.key === 'Enter') btn.click();
-});
-</script>
+    // Allow Enter key to submit
+    hoursInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') btn.click();
+    });
+  </script>
 </body>
 </html>
