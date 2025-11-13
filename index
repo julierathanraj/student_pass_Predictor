@@ -1,0 +1,73 @@
+Student Pass/Fail Predictor (single-file web app)
+
+
+<div id="output" class="result" aria-live="polite" hidden>
+<div>Probability of passing: <span id="prob" class="prob">0%</span></div>
+<div id="verdict" style="margin-top:8px;font-weight:700"></div>
+<small class="note">This prediction uses a simple logistic model trained on a small demo dataset. Use for demo/learning only.</small>
+</div>
+
+
+<footer>
+<div>Pre-trained logistic regression model used (w = 0.39989911153643404, b = -1.0659625804009358)</div>
+</footer>
+</div>
+
+
+<script>
+// Model coefficients (from logistic regression trained offline)
+const w = 0.39989911153643404;
+const b = -1.0659625804009358;
+
+
+function sigmoid(z){
+return 1 / (1 + Math.exp(-z));
+}
+
+
+function predictProbability(hours){
+const z = w * hours + b;
+return sigmoid(z);
+}
+
+
+const hoursInput = document.getElementById('hours');
+const btn = document.getElementById('predictBtn');
+const output = document.getElementById('output');
+const probEl = document.getElementById('prob');
+const verdictEl = document.getElementById('verdict');
+
+
+btn.addEventListener('click', () => {
+const hours = parseFloat(hoursInput.value);
+if (Number.isNaN(hours) || hours < 0) {
+alert('Please enter a valid non-negative number of hours.');
+return;
+}
+
+
+const p = predictProbability(hours);
+const percent = (p * 100).toFixed(2) + '%';
+probEl.textContent = percent;
+
+
+if (p >= 0.5) {
+verdictEl.textContent = 'PREDICTION: PASS';
+verdictEl.className = 'pass';
+} else {
+verdictEl.textContent = 'PREDICTION: FAIL';
+verdictEl.className = 'fail';
+}
+
+
+output.hidden = false;
+});
+
+
+// Allow Enter key to submit
+hoursInput.addEventListener('keydown', (e) => {
+if (e.key === 'Enter') btn.click();
+});
+</script>
+</body>
+</html>
